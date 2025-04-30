@@ -5,7 +5,7 @@ import { verifyBiometric } from '../services/biometricService';
 import io from 'socket.io-client';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const socket = io('http://localhost:5001');
+const socket = io('https://ovs-backend-1.onrender.com');
 
 export default function Elections() {
   const [elections, setElections] = useState([]);
