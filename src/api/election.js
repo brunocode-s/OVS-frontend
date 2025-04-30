@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Define the base URL for your API
-const BASE_URL = 'http://localhost:5001/api'; // Update with your actual API URL
+const BASE_URL = 'https://ovs-backend-1.onrender.com'; // Update with your actual API URL
 
 // Function to get the list of elections for a specific user (e.g., from a backend)
 export const getUserElections = async () => {
