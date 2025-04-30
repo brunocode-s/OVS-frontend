@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://ovs-backend-1.onrender.com',
   withCredentials: true, // Include credentials like cookies if needed
   timeout: 10000, // Set a timeout for request
 });
