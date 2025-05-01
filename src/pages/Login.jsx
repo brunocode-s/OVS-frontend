@@ -156,13 +156,13 @@ export default function Login() {
         </button>
       </div>
 
-      <button
+{/*       <button
         type="button"
         onClick={startFingerprintLogin}
         className="w-full py-2 rounded-md mb-3 bg-gray-500 text-white font-medium hover:bg-white hover:text-black hover:border hover:border-black transition"
       >
         Login with Fingerprint
-      </button>
+      </button> */}
 
       {fingerprintError && (
         <p className="text-sm text-red-500 mt-1">{fingerprintError}</p>
