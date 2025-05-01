@@ -138,16 +138,18 @@ export default function UserDashboard() {
           <h1 className="text-3xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-0">
             Welcome, {user.lastName}!
           </h1>
-          <div className="flex flex-col sm:flex-row items-center sm:space-x-6 space-y-4 sm:space-y-0">
-            <Link to="/elections" className="text-lg mr-2 font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 hover:dark:text-white relative group">
+          <div className="flex flex-row items-center space-x-6">
+            <Link
+              to="/elections"
+              className="text-lg mr-2 font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 hover:dark:text-white relative group"
+              >
               Elections
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gray-600 transform scale-x-0 group-hover:scale-x-100 transition-all duration-300 ease-out" />
             </Link>
             <button
               onClick={handleLogout}
               className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-            >
-              Logout
+             >Logout
             </button>
           </div>
         </div>
