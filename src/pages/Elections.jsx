@@ -77,8 +77,6 @@ export default function Elections() {
   };
 
   const handleVote = async (candidateId, electionId) => {
-    const authenticated = await startFingerprintLogin();
-    if (!authenticated) return;
 
     try {
       await API.post(`/elections/${electionId}/vote`, { candidateId });
