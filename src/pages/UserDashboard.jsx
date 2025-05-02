@@ -45,16 +45,19 @@ export default function UserDashboard() {
   // Fetch elections
   useEffect(() => {
     if (user) {
-      getUserElections()
-        .then((data) => {
-          setElections(data);
+      setLoading(true); // Optional: indicate loading state
+      API.get('/elections')
+        .then(res => {
+          setElections(res.data);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error('Error fetching elections:', err);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+        });
     }
-  }, [user]);
+  }, [user]);  
 
   // Handle logout
   const handleLogout = () => {
