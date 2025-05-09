@@ -5,6 +5,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Register from './pages/Register';
 import Elections from './pages/Elections';
 import AdminDashboard from './pages/AdminDashboard';
@@ -50,6 +52,12 @@ function App() {
         {/* Routes for login and register */}
         <Route path="/login" element={isLoggedIn ? <UserDashboard /> : <Login />} />
         <Route path="/register" element={isLoggedIn ? <UserDashboard /> : <Register />} />
+
+        {/* Route for forgot password */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        
+        {/* Route for reset password */}
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Route for election details */}
         <Route 

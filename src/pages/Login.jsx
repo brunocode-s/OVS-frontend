@@ -5,6 +5,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });
@@ -156,13 +157,22 @@ export default function Login() {
         </button>
       </div>
 
-{/*       <button
+      <div className="w-full flex justify-center items-center">
+        <Link
+          to="/forgot-password"
+          className="text-red-600 hover:underline hover:text-red-500 text-sm mb-2"
+        >
+          Forgot Password?
+        </Link>
+      </div>
+
+      <button
         type="button"
         onClick={startFingerprintLogin}
         className="w-full py-2 rounded-md mb-3 bg-gray-500 text-white font-medium hover:bg-white hover:text-black hover:border hover:border-black transition"
       >
         Login with Fingerprint
-      </button> */}
+      </button>
 
       {fingerprintError && (
         <p className="text-sm text-red-500 mt-1">{fingerprintError}</p>
