@@ -60,19 +60,20 @@ const FingerprintRegister = ({ onSuccess }) => {
         throw new Error('Challenge missing in registration options');
       }
   
-      // Correct: pass options directly
+      // Start registration process
       const attResp = await startRegistration(options);
-  
       console.log('Raw WebAuthn response:', attResp);
   
-      // 🚀 Send attResp directly, NO transformation
+      // Send attResp directly, no transformation
       const verifyRes = await API.post(
         '/webauthn/verify-registration',
         attResp,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // reuse the token from earlier
         }
       );
+  
+      console.log('WebAuthn Registration Verification Response:', verifyRes);
   
       if (verifyRes.data.success) {
         setIsFingerprintRegistered(true);
@@ -83,13 +84,19 @@ const FingerprintRegister = ({ onSuccess }) => {
       }
     } catch (err) {
       console.error('Registration error:', err);
+  
+      // Log additional error information for debugging
+      if (err.response && err.response.data) {
+        console.error('Error Details:', err.response.data);
+      }
+  
       toast.error(
         `❌ ${err?.response?.data?.message || err.message || 'Error verifying registration'} || Fingerprint registration failed. Please try again.`
       );
     } finally {
       setRegistering(false);
     }
-  };  
+  };    
   return (
     <div>
       {checking ? (
