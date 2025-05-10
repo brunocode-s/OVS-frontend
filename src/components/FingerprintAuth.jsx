@@ -53,6 +53,7 @@ const FingerprintRegister = ({ onSuccess }) => {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         }
       );
   
@@ -70,6 +71,7 @@ const FingerprintRegister = ({ onSuccess }) => {
         attResp,
         {
           headers: { Authorization: `Bearer ${token}` }, // reuse the token from earlier
+          withCredentials: true,
         }
       );
   
