@@ -62,7 +62,7 @@ const FingerprintRegister = ({ onSuccess }) => {
       }
   
       // Start registration process
-      const attResp = await startRegistration(options);
+      const attResp = await startRegistration({ optionsJSON: options });
       console.log('Raw WebAuthn response:', attResp);
   
       // Send attResp directly, no transformation
