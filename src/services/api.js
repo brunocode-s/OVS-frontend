@@ -11,15 +11,29 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+
+    // Skip adding token for WebAuthn session-based endpoints
+    const webauthnRoutes = [
+      '/webauthn/generate-registration-options',
+      '/webauthn/verify-registration',
+      '/webauthn/generate-authentication-options',
+      '/webauthn/verify-authentication',
+      '/webauthn/check-registration',
+    ];
+
+    const isWebAuthnRoute = webauthnRoutes.some((path) =>
+      config.url?.includes(path)
+    );
+
+    if (token && !isWebAuthnRoute) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
 
 // Response Interceptor: Handle expired token or general error
 API.interceptors.response.use(
