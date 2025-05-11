@@ -106,6 +106,7 @@ export default function Login() {
         setFingerprintError('Fingerprint authentication failed');
       }
     } catch (error) {
+      debugger;
       console.error(error);
       setFingerprintError('Error during fingerprint authentication');
       toast.error('Error during fingerprint authentication');
