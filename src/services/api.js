@@ -19,8 +19,6 @@ API.interceptors.request.use(
       '/webauthn/generate-authentication-options',
       '/webauthn/verify-authentication',
       '/webauthn/check-registration',
-      '/auth/start-fingerprint-login',
-      '/auth/verify-fingerprint',
     ];
 
     const isWebAuthnRoute = webauthnRoutes.some((path) =>
