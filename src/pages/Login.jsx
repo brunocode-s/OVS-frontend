@@ -2,10 +2,10 @@ import { useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { useNavigate } from 'react-router-dom';
+import { MdFingerprint } from 'react-icons/md';
+import { useNavigate, Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });
@@ -15,9 +15,11 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Helper function to convert Base64URL to Base64
   function base64urlToBase64(base64url) {
-    return base64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(base64url.length + (4 - base64url.length % 4) % 4, '=');
+    return base64url
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(base64url.length + (4 - (base64url.length % 4)) % 4, '=');
   }
 
   const handleChange = (e) => {
@@ -26,6 +28,10 @@ export default function Login() {
 
     if (name === 'password' && passwordError) {
       setPasswordError('');
+    }
+
+    if (name === 'email' && fingerprintError) {
+      setFingerprintError('');
     }
   };
 
@@ -43,59 +49,86 @@ export default function Login() {
       };
 
       login(res.data.token, form.role, formattedUser);
-
       toast.success('Logged in');
 
-      if (form.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/userdashboard');
-      }
+      navigate(form.role === 'admin' ? '/admin' : '/userdashboard');
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';
 
       if (message.toLowerCase().includes('password')) {
         setPasswordError('Incorrect password');
       } else {
-        setPasswordError('Incorrect Password')
+        setPasswordError('Incorrect Password');
         toast.error(message);
       }
     }
   };
 
   const startFingerprintLogin = async () => {
+    if (!form.email) {
+      setFingerprintError('Please enter your email first');
+      return;
+    }
+
     try {
-      const response = await API.post('/auth/start-fingerprint-login', { email: form.email });
+      const response = await API.post('/auth/start-fingerprint-login', {
+        email: form.email,
+      });
 
       const publicKeyCredentialRequestOptions = {
         ...response.data,
-        challenge: Uint8Array.from(atob(base64urlToBase64(response.data.challenge)), c => c.charCodeAt(0)),
+        challenge: Uint8Array.from(
+          atob(base64urlToBase64(response.data.challenge)),
+          (c) => c.charCodeAt(0)
+        ),
         allowCredentials: (response.data.allowCredentials || []).map((cred) => ({
           ...cred,
           id: cred.id
-            ? Uint8Array.from(atob(cred.id.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0))
+            ? Uint8Array.from(
+                atob(cred.id.replace(/-/g, '+').replace(/_/g, '/')),
+                (c) => c.charCodeAt(0)
+              )
             : new Uint8Array(),
-        })),        
+        })),
       };
 
-      const credential = await navigator.credentials.get({ publicKey: publicKeyCredentialRequestOptions });
+      const credential = await navigator.credentials.get({
+        publicKey: publicKeyCredentialRequestOptions,
+      });
 
       const credentialData = {
         id: credential.id,
         rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
         type: credential.type,
         response: {
-          authenticatorData: btoa(String.fromCharCode(...new Uint8Array(credential.response.authenticatorData))),
-          clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
-          signature: btoa(String.fromCharCode(...new Uint8Array(credential.response.signature))),
+          authenticatorData: btoa(
+            String.fromCharCode(
+              ...new Uint8Array(credential.response.authenticatorData)
+            )
+          ),
+          clientDataJSON: btoa(
+            String.fromCharCode(
+              ...new Uint8Array(credential.response.clientDataJSON)
+            )
+          ),
+          signature: btoa(
+            String.fromCharCode(...new Uint8Array(credential.response.signature))
+          ),
           userHandle: credential.response.userHandle
-            ? btoa(String.fromCharCode(...new Uint8Array(credential.response.userHandle)))
+            ? btoa(
+                String.fromCharCode(
+                  ...new Uint8Array(credential.response.userHandle)
+                )
+              )
             : null,
         },
         email: form.email,
       };
 
-      const verifyResponse = await API.post('/auth/verify-fingerprint', credentialData);
+      const verifyResponse = await API.post(
+        '/auth/verify-fingerprint',
+        credentialData
+      );
 
       if (verifyResponse.data.success) {
         const { user } = verifyResponse.data;
@@ -106,7 +139,6 @@ export default function Login() {
         setFingerprintError('Fingerprint authentication failed');
       }
     } catch (error) {
-      debugger;
       console.error(error);
       setFingerprintError('Error during fingerprint authentication');
       toast.error('Error during fingerprint authentication');
@@ -120,15 +152,27 @@ export default function Login() {
     >
       <h2 className="text-3xl font-bold mb-6">Login</h2>
 
+      {/* Role Selector */}
+      <select
+        name="role"
+        onChange={handleChange}
+        value={form.role}
+        className="w-full p-2 border border-gray-300 rounded-lg mb-3"
+      >
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+
       <input
         name="email"
+        type="email"
         onChange={handleChange}
         placeholder="Email"
         required
         className="w-full p-2 border border-gray-300 rounded-lg mb-3"
       />
 
-      <div className="w-full relative mb-2">
+      <div className="w-full relative mb-1">
         <input
           name="password"
           onChange={handleChange}
@@ -136,15 +180,10 @@ export default function Login() {
           placeholder="Password"
           required
           className={clsx(
-            'w-full p-2 border rounded-lg mb-1 transition-all duration-300',
+            'w-full p-2 border rounded-lg transition-all duration-300',
             passwordError ? 'border-red-500' : 'border-gray-300'
           )}
         />
-        {passwordError && (
-          <p className="text-sm text-red-500 mt-1 animate-fade-in animate-fade-out">
-            {passwordError}
-          </p>
-        )}
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
@@ -156,41 +195,41 @@ export default function Login() {
             <AiOutlineEye size={24} />
           )}
         </button>
+        {passwordError && (
+          <p className="text-sm text-red-500">{passwordError}</p>
+        )}
       </div>
 
-      <div className="w-full flex justify-center items-center">
+      <div className="w-full text-right mb-1">
         <Link
           to="/forgot-password"
-          className="text-red-600 hover:underline hover:text-red-500 text-sm mb-2"
+          className="text-sm text-red-600 hover:underline"
         >
           Forgot Password?
         </Link>
       </div>
 
-      <button
-        type="button"
-        onClick={startFingerprintLogin}
-        className="w-full py-2 rounded-md mb-3 bg-gray-500 text-white font-medium hover:bg-white hover:text-black hover:border hover:border-black transition"
-      >
-        Login with Fingerprint
-      </button>
+      <div className="flex w-full space-x-4 gap-0.5">
+        <button
+          type="submit"
+          className="flex-1 px-6 py-2 rounded-md bg-gray-800 text-white font-medium hover:bg-white hover:text-black hover:border hover:border-black transition"
+        >
+          Login
+        </button>
+
+        <button
+          type="button"
+          onClick={startFingerprintLogin}
+          className="flex items-center justify-center w-12 h-12 rounded-md bg-gray-600 text-white hover:bg-white hover:text-black hover:border hover:border-black transition"
+          title="Login with Fingerprint"
+        >
+          <MdFingerprint size={24} />
+        </button>
+      </div>
 
       {fingerprintError && (
-        <p className="text-sm text-red-500 mt-1">{fingerprintError}</p>
+        <p className="text-sm text-red-500 mt-2 text-center">{fingerprintError}</p>
       )}
-
-      <select
-        name="role"
-        onChange={handleChange}
-        className="w-full p-2 border border-gray-300 rounded-lg mb-3"
-      >
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-
-      <button className="px-6 py-2 rounded-md bg-gray-800 text-white font-medium hover:bg-white hover:text-black hover:border hover:border-black transition">
-        Login
-      </button>
     </form>
   );
 }
