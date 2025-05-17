@@ -230,6 +230,14 @@ export default function Login() {
       {fingerprintError && (
         <p className="text-sm text-red-500 mt-2 text-center">{fingerprintError}</p>
       )}
+      
+      {/* Register link */}
+      <div className="mt-4 text-sm text-center">
+        Don’t have an account?{' '}
+        <Link to="/register" className="text-blue-600 hover:underline">
+          Register here
+        </Link>
+      </div>
     </form>
   );
 }
