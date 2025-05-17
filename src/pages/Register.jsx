@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
@@ -52,7 +52,6 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const { firstName, lastName, email, password } = form;
 
     if (!firstName || !lastName || !email || !password) {
@@ -66,19 +65,22 @@ export default function Register() {
     }
 
     if (!validatePassword(password)) {
-      toast.error('Password must be at least 8 characters long, include a number, an uppercase letter, and a special character');
+      toast.error('Password must meet all requirements');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      console.log('Form data:', form);
-      const res = await API.post('/auth/register', form);
-      localStorage.setItem('token', res.data.token);  // Save token for authentication
+      const trimmedForm = {
+        ...form,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+      };
+      const res = await API.post('/auth/register', trimmedForm);
+      localStorage.setItem('token', res.data.token);
       toast.success('Registered successfully');
-      
-      // Redirect to the User Dashboard
       navigate('/UserDashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error during registration');
@@ -88,72 +90,71 @@ export default function Register() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="min-h-[700px] flex flex-col items-center justify-center max-w-md w-full mx-auto p-4 space-y-4"
-      autoComplete="on"
-    >
-      <h2 className="text-3xl font-bold mb-3">Register</h2>
-
-      <input
-        name="firstName"
-        onChange={handleChange}
-        placeholder="First Name"
-        value={form.firstName}
-        required
-        className="w-full p-3 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <input
-        name="lastName"
-        onChange={handleChange}
-        placeholder="Last Name"
-        value={form.lastName}
-        required
-        className="w-full p-3 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <input
-        name="email"
-        onChange={handleChange}
-        placeholder="Email"
-        value={form.email}
-        required
-        autoComplete="email"
-        className={`w-full p-3 border rounded-md mb-2 focus:outline-none focus:ring-2 ${
-          emailError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-500'
-        }`}
-      />
-      {emailError && <p className="text-red-500 text-sm w-full -mt-1 mb-2">{emailError}</p>}
-
-      <div className="w-full relative">
-        <input
-          name="password"
-          onChange={handleChange}
-          type={showPassword ? 'text' : 'password'}
-          placeholder="Password"
-          value={form.password}
-          required
-          autoComplete="new-password"
-          className="w-full p-3 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-3 top-3 text-xl text-gray-500"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-        >
-          {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-        </button>
-      </div>
-
-      {/* Password Checklist */}
-      <div
-        className={`w-full overflow-hidden transition-all duration-500 ${
-          showPasswordHints && !allPasswordValid ? 'max-h-[200px] opacity-100 mb-3' : 'max-h-0 opacity-0 mb-0'
-        }`}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <form
+        onSubmit={handleSubmit}
+        className=" rounded-lg px-8 pt-8 pb-6 w-full max-w-md space-y-4"
       >
-        <div className="text-sm text-gray-700 dark:text-gray-300 w-full space-y-1">
+        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white">Create Account</h2>
+        <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-4">Please fill in the form to register.</p>
+
+        <input
+          name="firstName"
+          onChange={handleChange}
+          placeholder="First Name"
+          value={form.firstName}
+          required
+          className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+        />
+
+        <input
+          name="lastName"
+          onChange={handleChange}
+          placeholder="Last Name"
+          value={form.lastName}
+          required
+          className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+        />
+
+        <input
+          name="email"
+          onChange={handleChange}
+          placeholder="Email"
+          value={form.email}
+          required
+          autoComplete="email"
+          className={`w-full p-3 border rounded-md mb-2 focus:outline-none focus:ring-2 ${
+            emailError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-500'
+          }`}
+        />
+        {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+
+        <div className="relative">
+          <input
+            name="password"
+            onChange={handleChange}
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={form.password}
+            required
+            autoComplete="new-password"
+            className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-3 text-xl text-gray-500"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+          </button>
+        </div>
+
+        <div
+          className={`transition-all duration-300 text-sm text-gray-700 dark:text-gray-300 ${
+            showPasswordHints && !allPasswordValid ? 'space-y-1 mb-2' : 'h-0 overflow-hidden'
+          }`}
+        >
           <p className="flex items-center gap-2">
             {passwordStatus.length ? <FaCheckCircle className="text-green-500" /> : <FaTimesCircle className="text-red-500" />}
             Minimum 8 characters
@@ -171,31 +172,38 @@ export default function Register() {
             At least one special character (@$!%*?&)
           </p>
         </div>
-      </div>
 
-      <select
-        name="role"
-        onChange={handleChange}
-        value={form.role}
-        className="w-full p-3 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-black-500"
-      >
-        <option value="voter">Voter</option>
-        <option value="admin">Admin</option>
-      </select>
+        <select
+          name="role"
+          onChange={handleChange}
+          value={form.role}
+          className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+        >
+          <option value="voter">Voter</option>
+          <option value="admin">Admin</option>
+        </select>
 
-      <button
-        type="submit"
-        disabled={isSubmitting || !allPasswordValid}
-        className="w-full p-3 text-white bg-blue-500 rounded-md disabled:opacity-50"
-      >
-        {isSubmitting ? (
-          <div className="flex justify-center items-center">
-            <div className="w-6 h-6 border-4 border-t-transparent border-blue-500 border-solid rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          'Register'
-        )}
-      </button>
-    </form>
+        <button
+          type="submit"
+          disabled={isSubmitting || !allPasswordValid || !!emailError}
+          className="w-full p-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <div className="flex justify-center items-center">
+              <div className="w-5 h-5 border-4 border-t-transparent border-white border-solid rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            'Register'
+          )}
+        </button>
+
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-3">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-600 hover:underline dark:text-blue-400">
+            Log in
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
