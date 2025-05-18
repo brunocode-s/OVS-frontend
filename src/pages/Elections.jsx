@@ -13,6 +13,7 @@ export default function Elections() {
   const [results, setResults] = useState({});
   const [candidates, setCandidates] = useState({});
   const [fingerprintError, setFingerprintError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchElections();
@@ -60,22 +61,6 @@ export default function Elections() {
     });
   }, [elections]);
 
-  const startFingerprintLogin = async () => {
-    if (!window.PublicKeyCredential) {
-      toast.error('WebAuthn not supported on this browser.');
-      return false;
-    }
-
-    try {
-      const authenticated = await verifyBiometric();
-      return authenticated;
-    } catch (error) {
-      setFingerprintError('Fingerprint authentication failed.');
-      toast.error('Fingerprint authentication failed.');
-      return false;
-    }
-  };
-
   const handleVote = async (candidateId, electionId) => {
 
     try {
@@ -90,11 +75,30 @@ export default function Elections() {
   const totalVotes = (electionId) => Object.values(results[electionId] || {}).reduce((acc, val) => acc + val, 0);
 
   const now = new Date();
-  const ongoingElections = elections.filter((e) => new Date(e.start_date) <= now && new Date(e.end_date) > now);
-  const endedElections = elections.filter((e) => new Date(e.end_date) <= now);
+
+  const filteredElections = elections.filter((e) =>
+    e.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const ongoingElections = filteredElections.filter(
+    (e) => new Date(e.start_date) <= now && new Date(e.end_date) > now
+  );
+  
+  const endedElections = filteredElections.filter(
+    (e) => new Date(e.end_date) <= now
+  );
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-900 shadow rounded-lg mt-8">
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search elections..."
+          className="w-full px-4 py-2 border border-gray-300 rounded dark:bg-gray-800 dark:text-white"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">Live Elections</h2>
 
       {/* Ongoing Elections */}
