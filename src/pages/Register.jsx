@@ -186,7 +186,7 @@ export default function Register() {
         <button
           type="submit"
           disabled={isSubmitting || !allPasswordValid || !!emailError}
-          className="w-full p-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
+          className="w-full p-3 text-white bg-gray-800 rounded-md hover:bg-gray-700 transition duration-200 disabled:opacity-50"
         >
           {isSubmitting ? (
             <div className="flex justify-center items-center">
