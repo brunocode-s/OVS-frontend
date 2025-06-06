@@ -121,7 +121,7 @@ export default function UserDashboard() {
             <div className="mt-4">
               <FingerprintRegister
                 onSuccess={() => {
-                  toast.success('Fingerprint registered successfully!');
+                  // toast.success('Fingerprint registered successfully!');
                   checkFingerprintStatus();
                 }}
               />
