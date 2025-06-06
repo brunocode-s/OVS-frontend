@@ -79,7 +79,7 @@ const FingerprintRegister = ({ onSuccess }) => {
   
       if (verifyRes.data.success) {
         setIsFingerprintRegistered(true);
-        toast.success('🎉 Fingerprint registered successfully!');
+        // toast.success('🎉 Fingerprint registered successfully!');
         if (onSuccess) onSuccess(verifyRes.data.fingerprintId);
       } else {
         toast.error('❌ Fingerprint registration failed. Please try again.');

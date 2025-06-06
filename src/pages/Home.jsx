@@ -36,7 +36,7 @@ export default function Home() {
         <Link
           to="/login"
           aria-label="Go to login page"
-          className="px-6 py-2 rounded-md bg-white text-black border border-transparent font-medium hover:bg-black hover:text-white hover:border-black transition dark:hover:bg-gray-800 dark:hover:text-white dark:hover:border-white"
+          className="px-6 py-2 rounded-md bg-white text-black border border-black font-medium hover:bg-black hover:text-white hover:border-black transition dark:hover:bg-gray-800 dark:hover:text-white dark:hover:border-white"
         >
           Login
         </Link>
