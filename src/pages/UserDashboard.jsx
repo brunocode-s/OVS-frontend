@@ -1,22 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserElections } from '../api/election';
-import { format } from 'date-fns';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import FingerprintRegister from '../components/FingerprintAuth';
-
-// Utility: Convert base64 string to Uint8Array
-const base64ToUint8Array = (base64) => {
-  const padding = '='.repeat((4 - base64.length % 4) % 4);
-  const base64Cleaned = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64Cleaned);
-  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
-};
-
-// Utility: Check if string is base64url
-const isBase64Url = (str) => /^[A-Za-z0-9_-]+$/.test(str);
+import { format } from 'date-fns';
 
 export default function UserDashboard() {
   const { user, logout } = useAuth();
@@ -27,25 +15,31 @@ export default function UserDashboard() {
   const [hasFingerprint, setHasFingerprint] = useState(false);
   const [checkingFingerprint, setCheckingFingerprint] = useState(true);
 
-  // Check if fingerprint is registered
+  // Function to check fingerprint registration status from backend
+  const checkFingerprintStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await API.get('/auth/has-fingerprint', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHasFingerprint(res.data.hasFingerprint);
+    } catch (err) {
+      console.error('Error checking fingerprint:', err);
+      toast.error('Unable to check fingerprint status.');
+    } finally {
+      setCheckingFingerprint(false);
+    }
+  };
+
+  // Check fingerprint on mount
   useEffect(() => {
-    const checkFingerprint = async () => {
-      try {
-        const res = await API.get('/auth/has-fingerprint');
-        setHasFingerprint(res.data.hasFingerprint);
-      } catch (err) {
-        console.error('Error checking fingerprint:', err);
-      } finally {
-        setCheckingFingerprint(false);
-      }
-    };
-    checkFingerprint();
+    checkFingerprintStatus();
   }, []);
 
   // Fetch elections
   useEffect(() => {
     if (user) {
-      setLoading(true); // Optional: indicate loading state
+      setLoading(true);
       API.get('/elections')
         .then(res => {
           setElections(res.data);
@@ -57,7 +51,7 @@ export default function UserDashboard() {
           setLoading(false);
         });
     }
-  }, [user]);  
+  }, [user]);
 
   // Handle logout
   const handleLogout = () => {
@@ -71,64 +65,10 @@ export default function UserDashboard() {
     return isNaN(validDate) ? 'No date available' : format(validDate, 'PPP p');
   };
 
-  // Sort elections
+  // Sort elections by start date ascending
   const sortedElections = [...elections].sort(
     (a, b) => new Date(a.start_date) - new Date(b.start_date)
   );
-
-  // Fingerprint registration
-  const handleFingerprintRegistration = async () => {
-    if (!user?.id) {
-      toast.error('User not found or ID is missing');
-      return;
-    }
-
-    try {
-      const startRes = await API.post('/auth/start-fingerprint-register');
-      const { challenge, user: webAuthnUser } = startRes.data;
-
-      if (!challenge || !isBase64Url(challenge)) {
-        toast.error('Invalid challenge received.');
-        return;
-      }
-
-      const publicKeyOptions = {
-        ...startRes.data,
-        challenge: base64ToUint8Array(challenge),
-        user: {
-          ...webAuthnUser,
-          id: new TextEncoder().encode(webAuthnUser.id),
-        },
-      };
-
-
-      const credential = await navigator.credentials.create({ publicKey: publicKeyOptions });
-      console.log('WebAuthn Response:', credential);
-
-      const credentialData = {
-        id: credential.id,
-        rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-        type: credential.type,
-        response: {
-          attestationObject: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject))),
-          clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
-        },
-      };
-
-      const verifyRes = await API.post('/auth/verify-fingerprint-register', credentialData);
-      console.log('Backend Response:', verifyRes.data);
-
-      if (verifyRes.data.success) {
-        toast.success('Fingerprint registered successfully!');
-        setHasFingerprint(true);
-      } else {
-        toast.error('Fingerprint registration failed.');
-      }
-    } catch (err) {
-      console.error('Error during fingerprint registration:', err);
-      toast.error('Error during fingerprint registration.');
-    }
-  };
 
   if (!user) return <div className="text-center py-20 text-lg">Loading dashboard...</div>;
 
@@ -145,14 +85,15 @@ export default function UserDashboard() {
             <Link
               to="/elections"
               className="text-lg mr-2 font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 hover:dark:text-white relative group"
-              >
+            >
               Elections
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gray-600 transform scale-x-0 group-hover:scale-x-100 transition-all duration-300 ease-out" />
             </Link>
             <button
               onClick={handleLogout}
               className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-             >Logout
+            >
+              Logout
             </button>
           </div>
         </div>
@@ -166,18 +107,26 @@ export default function UserDashboard() {
             <p><strong>Role:</strong> {user.role}</p>
           </div>
 
-          {!checkingFingerprint && !hasFingerprint && (
+          {/* Fingerprint status UI */}
+          {checkingFingerprint ? (
+            <div className="text-gray-500 dark:text-gray-300">Checking fingerprint...</div>
+          ) : hasFingerprint ? (
+            <div className="flex items-center text-green-600 font-medium mt-4">
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Your fingerprint is registered!
+            </div>
+          ) : (
             <div className="mt-4">
               <FingerprintRegister
-                userId={user.id}
                 onSuccess={() => {
                   toast.success('Fingerprint registered successfully!');
-                  setHasFingerprint(true);
+                  checkFingerprintStatus();
                 }}
               />
             </div>
           )}
-
         </section>
 
         {/* Elections Section */}
@@ -190,7 +139,10 @@ export default function UserDashboard() {
           ) : (
             <ul className="space-y-6">
               {sortedElections.map((election) => (
-                <li key={election.id} className="bg-gray-100 dark:bg-gray-700 p-6 rounded-xl shadow-md hover:shadow-lg mb-4 transition-all duration-300 ease-in-out">
+                <li
+                  key={election.id}
+                  className="bg-gray-100 dark:bg-gray-700 p-6 rounded-xl shadow-md hover:shadow-lg mb-4 transition-all duration-300 ease-in-out"
+                >
                   <div className="flex flex-col sm:flex-row justify-between items-start">
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{election.title}</h3>
