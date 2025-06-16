@@ -103,7 +103,7 @@ export default function Login() {
     setLoadingFingerprint(true);
 
     try {
-      const response = await API.post('/auth/start-fingerprint-login', {
+      const response = await API.post('/webauthn/start-fingerprint-login', {
         email: form.email,
       });
 
@@ -151,7 +151,7 @@ export default function Login() {
         email: form.email,
       };
 
-      const verifyResponse = await API.post('/auth/verify-fingerprint', credentialData);
+      const verifyResponse = await API.post('/webauthn/verify-fingerprint', credentialData);
 
       if (verifyResponse.data.success) {
         const { user } = verifyResponse.data;
