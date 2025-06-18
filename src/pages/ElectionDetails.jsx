@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { castVote, getElectionById } from '../api/election';
+import { verifyBiometric } from '../services/biometricService';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 
@@ -101,17 +102,29 @@ export default function ElectionDetails() {
       setShowModal(false);
       return;
     }
-
+  
     const candidate = election.candidates.find((c) => c.id === selectedCandidateId);
     if (!candidate) {
       toast.error('Candidate not found.');
       setShowModal(false);
       return;
     }
-
-    await handleVote(candidate.id);  // Confirm the vote
+  
+    // 🧬 Trigger fingerprint auth here
+    const verified = await verifyBiometric(() => {
+      toast.error('Fingerprint verification cancelled or failed.');
+    });
+  
+    if (!verified) {
+      setShowModal(false);
+      return;
+    }
+  
+    // ✅ Only allow vote after fingerprint is verified
+    await handleVote(candidate.id);
     setShowModal(false);
   };
+  
 
   const cancelVote = () => setShowModal(false);
 
