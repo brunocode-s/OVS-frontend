@@ -123,7 +123,7 @@ export default function Login() {
           value={form.role}
           className="w-full p-2 border border-gray-300 rounded-lg mb-3"
         >
-          <option value="user">Voter</option>
+          <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
 

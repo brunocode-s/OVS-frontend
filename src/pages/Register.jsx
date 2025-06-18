@@ -12,7 +12,7 @@ export default function Register() {
     lastName: '',
     email: '',
     password: '',
-    role: 'voter',
+    role: 'user',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -188,7 +188,7 @@ export default function Register() {
           value={form.role}
           className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
         >
-          <option value="voter">Voter</option>
+          <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
 

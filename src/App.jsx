@@ -119,7 +119,7 @@ function App() {
             </PublicRoute>
           }
         />
-              
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
