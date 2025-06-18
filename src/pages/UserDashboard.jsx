@@ -79,7 +79,7 @@ export default function UserDashboard() {
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 mb-8 flex flex-col sm:flex-row justify-between items-center border border-gray-200 dark:border-gray-700">
           <h1 className="text-3xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-0">
-            Welcome, {user.lastName}!
+            Welcome, {user.lastname}!
           </h1>
           <div className="flex flex-row items-center space-x-6">
             <Link
@@ -102,7 +102,7 @@ export default function UserDashboard() {
         <section className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 mb-8 border border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-white mb-4">Your Profile</h2>
           <div className="space-y-2 mb-4">
-            <p><strong>Name:</strong> {user.lastName} {user.firstName}</p>
+            <p><strong>Name:</strong> {user.lastname} {user.firstname}</p>
             <p><strong>Email:</strong> {user.email}</p>
             <p><strong>Role:</strong> {user.role}</p>
           </div>
