@@ -133,8 +133,15 @@ export default function Login() {
       };
 
       const credential = await navigator.credentials.get({
-        publicKey: publicKeyCredentialRequestOptions,
-      });
+        publicKey: {
+          ...publicKeyCredentialRequestOptions,
+          userVerification: 'required',
+          // Ensure it uses Touch ID or other built-in biometrics
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform'
+          },
+        }
+      });      
 
       const credentialData = {
         id: credential.id,
