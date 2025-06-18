@@ -14,7 +14,7 @@ const FingerprintRegister = ({ onSuccess }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const result = await API.get('/webauthn/check-registration', {
+          const result = await API.get('/api/webauthn/check-registration', {
             headers: {
               Authorization: `Bearer ${token}`,
             },

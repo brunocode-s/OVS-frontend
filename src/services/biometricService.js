@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 export const verifyBiometric = async (onCancel = () => {}) => {
   try {
     // 1. Check if user has a registered fingerprint
-    const { data: check } = await axiosInstance.get('/webauthn/check-registration', {
+    const { data: check } = await axiosInstance.get('/api/webauthn/check-registration', {
       withCredentials: true,
     });
 
