@@ -118,6 +118,8 @@ export default function Login() {
         const { user } = verifyResponse.data;
         login(verifyResponse.data.token, user.role, user);
         toast.success('Fingerprint login successful');
+
+        console.log('✅ Redirecting after fingerprint login', user.role);
         navigate(user.role === 'admin' ? '/admin' : '/userdashboard');
       } else {
         setFingerprintError('Fingerprint authentication failed');
