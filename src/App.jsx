@@ -50,7 +50,7 @@ function App() {
         />
 
         {/* Routes for login and register */}
-        <Route path="/login" element={isLoggedIn ? <UserDashboard /> : <Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={isLoggedIn ? <UserDashboard /> : <Register />} />
 
         {/* Route for forgot password */}
