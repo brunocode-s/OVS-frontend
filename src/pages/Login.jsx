@@ -114,7 +114,7 @@ export default function Login() {
       // ✅ Send raw credential object (no transformation)
       const verifyResponse = await API.post('/webauthn/verify-authentication', credential);
   
-      if (verifyResponse.data.success) {
+      if (verifyResponse.data.success && verifyResponse.data.user) {
         const { user } = verifyResponse.data;
         login(verifyResponse.data.token, user.role, user);
         toast.success('Fingerprint login successful');
