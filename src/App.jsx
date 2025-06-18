@@ -15,8 +15,16 @@ import ElectionDetails from './pages/ElectionDetails';
 import Navbar from './components/Navbar';
 
 function App() {
-  const { isLoggedIn, userRole } = useAuth();
+  const { isLoggedIn, userRole, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg font-semibold">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -27,9 +35,10 @@ function App() {
 
       <ToastContainer />
       <Routes>
+        {/* Public route */}
         <Route path="/" element={<Home />} />
 
-        {/* PROTECTED ROUTES */}
+        {/* Protected routes */}
         <Route
           path="/userdashboard"
           element={
@@ -51,16 +60,6 @@ function App() {
           }
         />
         <Route
-          path="/admin"
-          element={
-            isLoggedIn && userRole === 'admin' ? (
-              <AdminDashboard />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
           path="/elections/:id"
           element={
             isLoggedIn && userRole === 'user' ? (
@@ -70,20 +69,49 @@ function App() {
             )
           }
         />
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn && userRole === 'admin' ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
-        {/* PUBLIC ROUTES */}
-        <Route path="/login" element={isLoggedIn ? <Navigate to={userRole === 'admin' ? '/admin' : '/userdashboard'} replace /> : <Login />} />
-        <Route path="/register" element={isLoggedIn ? <Navigate to="/userdashboard" replace /> : <Register />} />
+        {/* Public routes */}
+        <Route
+          path="/login"
+          element={
+            isLoggedIn ? (
+              <Navigate to={userRole === 'admin' ? '/admin' : '/userdashboard'} replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/userdashboard" replace />
+            ) : (
+              <Register />
+            )
+          }
+        />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* 404 fallback */}
-        <Route path="*" element={<div>404 Not Found</div>} />
+        <Route path="*" element={<div className="text-center mt-20 text-xl font-bold">404 Not Found</div>} />
       </Routes>
     </div>
   );
 }
 
+// Main entry with router wrapper
 export default function Root() {
   return (
     <BrowserRouter>
