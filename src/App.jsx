@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { useAuth } from './context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,59 +14,144 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Navbar from './components/Navbar';
 
-function App() {
-  const { isLoggedIn, userRole } = useAuth();
-  const location = useLocation(); // Use useLocation hook to get the current path
+// Protected Route Component
+function ProtectedRoute({ children, allowedRoles = [] }) {
+  const { isLoggedIn, userRole, loading } = useAuth();
 
-  // Function to check if the user is logged in
-  const checkIsLoggedIn = () => !!localStorage.getItem('token');
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg font-semibold">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// Public Route Component (redirects authenticated users)
+function PublicRoute({ children }) {
+  const { isLoggedIn, userRole, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg font-semibold">
+        Loading...
+      </div>
+    );
+  }
+
+  if (isLoggedIn) {
+    // Redirect based on user role
+    const redirectPath = userRole === 'admin' ? '/admin' : '/userdashboard';
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return children;
+}
+
+function App() {
+  const { loading } = useAuth();
+  const location = useLocation();
+
+  // Show navbar on specific pages
+  const showNavbarPaths = ['/', '/login', '/register'];
+  const shouldShowNavbar = showNavbarPaths.includes(location.pathname);
+
+  // Don't render anything until auth is loaded
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg font-semibold">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div>
-      {/* Display Navbar only on Home, Login, and Register pages */}
-      {location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register' ? <Navbar /> : null}
+      {/* Conditional navbar rendering */}
+      {shouldShowNavbar && <Navbar />}
 
-      <ToastContainer />
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <Routes>
-        {/* Home route */}
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
-
-        {/* Route for user dashboard */}
-        <Route 
-          path="/userdashboard" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <UserDashboard /> : <Login />}
-        />
         
-        {/* Route for elections */}
-        <Route 
-          path="/elections" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <Elections /> : <Login />} 
-        />
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
         
-        {/* Admin routes */}
-        <Route 
-          path="/admin" 
-          element={checkIsLoggedIn() && userRole === 'admin' ? <AdminDashboard /> : <Login />}
-        />
-
-        {/* Routes for login and register */}
-        <Route path="/login" element={isLoggedIn ? <UserDashboard /> : <Login />} />
-        <Route path="/register" element={isLoggedIn ? <UserDashboard /> : <Register />} />
+        <Route path="/register" element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        } />
         
-        {/* Route for forgot password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        {/* Route for reset password */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Route for election details */}
-        <Route 
-          path="/elections/:id" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <ElectionDetails /> : <Login />}
-        />
+        {/* Protected User Routes */}
+        <Route path="/userdashboard" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserDashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/elections" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <Elections />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/elections/:id" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <ElectionDetails />
+          </ProtectedRoute>
+        } />
 
-        {/* 404 Route */}
-        <Route path="*" element={<div>404 Not Found</div>} />
+        {/* Protected Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* 404 fallback */}
+        <Route path="*" element={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+              <p className="text-xl text-gray-600 mb-4">Page Not Found</p>
+              <button 
+                onClick={() => window.location.href = '/'} 
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        } />
       </Routes>
     </div>
   );
