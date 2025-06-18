@@ -4,6 +4,7 @@ import API from '../services/api';
 import { toast } from 'react-toastify';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -21,6 +22,7 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePassword = (password) =>
@@ -78,10 +80,17 @@ export default function Register() {
         lastName: form.lastName.trim(),
         email: form.email.trim(),
       };
+
       const res = await API.post('/auth/register', trimmedForm);
-      localStorage.setItem('token', res.data.token);
+
+      // ✅ Log user into context immediately
+      const user = res.data.user;
+      login(res.data.token, user.role, user);
+
       toast.success('Registered successfully');
-      navigate('/UserDashboard');
+
+      // ✅ Redirect based on role
+      navigate(user.role === 'admin' ? '/admin' : '/userdashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error during registration');
     } finally {
@@ -93,7 +102,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <form
         onSubmit={handleSubmit}
-        className=" rounded-lg px-8 pt-8 pb-6 w-full max-w-md space-y-4"
+        className="rounded-lg px-8 pt-8 pb-6 w-full max-w-md space-y-4"
       >
         <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white">Create Account</h2>
         <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-4">Please fill in the form to register.</p>
