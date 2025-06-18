@@ -110,7 +110,9 @@ export default function Login() {
       const publicKeyCredentialRequestOptions = {
         ...response.data,
         challenge: base64urlToUint8Array(response.data.challenge),
-        allowCredentials: (response.data.allowCredentials || []).map((cred) => {
+        allowCredentials: (response.data.allowCredentials || [])
+          .filter((cred) => cred.transports?.includes('internal')) // 'internal' means built-in Touch ID
+          .map((cred) => {
           let idUint8Array;
 
           if (typeof cred.id === 'string') {
