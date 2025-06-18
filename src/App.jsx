@@ -39,7 +39,14 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
 
 // Public Route Component (redirects authenticated users)
 function PublicRoute({ children }) {
-  const { isLoggedIn, userRole, loading } = useAuth();
+  const auth = useAuth();
+
+  if (!auth) {
+    console.warn("⚠️ Auth context is undefined!");
+    return children;
+  }
+
+  const { isLoggedIn, userRole, loading } = auth;
 
   if (loading) {
     return (
@@ -50,7 +57,6 @@ function PublicRoute({ children }) {
   }
 
   if (isLoggedIn) {
-    // Redirect based on user role
     const redirectPath = userRole === 'admin' ? '/admin' : '/userdashboard';
     return <Navigate to={redirectPath} replace />;
   }
