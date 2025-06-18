@@ -1,14 +1,12 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext();
-
-export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Important!
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -21,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(storedUser));
     }
 
-    setLoading(false); // Now we're ready
+    setLoading(false);
   }, []);
 
   const login = (token, role, userData) => {
@@ -59,3 +57,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Export only the AuthProvider component (not the context itself)
+export default AuthProvider;

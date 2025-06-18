@@ -5,7 +5,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { MdFingerprint } from 'react-icons/md';
 import { useNavigate, Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '', role: 'user' });

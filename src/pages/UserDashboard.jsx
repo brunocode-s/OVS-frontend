@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import FingerprintRegister from '../components/FingerprintAuth';

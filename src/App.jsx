@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Home from './pages/Home';
