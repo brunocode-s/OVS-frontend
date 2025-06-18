@@ -31,13 +31,13 @@ export default function Login() {
     return buffer;
   }
 
-  function uint8ArrayToBase64url(buffer) {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    bytes.forEach((b) => (binary += String.fromCharCode(b)));
-    const base64 = btoa(binary);
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
+  // function uint8ArrayToBase64url(buffer) {
+  //   let binary = '';
+  //   const bytes = new Uint8Array(buffer);
+  //   bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  //   const base64 = btoa(binary);
+  //   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  // }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -87,81 +87,33 @@ export default function Login() {
       setFingerprintError('Please enter your email first');
       return;
     }
-
-    function bufferLikeObjectToUint8Array(bufferObj) {
-      if (
-        bufferObj &&
-        bufferObj.type === 'Buffer' &&
-        Array.isArray(bufferObj.data)
-      ) {
-        return new Uint8Array(bufferObj.data);
-      }
-      throw new Error('Expected a Buffer-like object');
-    }
-
+  
     setFingerprintError('');
     setLoadingFingerprint(true);
-
+  
     try {
       const response = await API.post('/webauthn/generate-authentication-options', {
         email: form.email,
       });
-
+  
       const publicKeyCredentialRequestOptions = {
         ...response.data,
         challenge: base64urlToUint8Array(response.data.challenge),
         allowCredentials: (response.data.allowCredentials || [])
-          .filter((cred) => cred.transports?.includes('internal')) // 'internal' means built-in Touch ID
-          .map((cred) => {
-          let idUint8Array;
-
-          if (typeof cred.id === 'string') {
-            idUint8Array = base64urlToUint8Array(cred.id);
-          } else if (
-            cred.id &&
-            cred.id.type === 'Buffer' &&
-            Array.isArray(cred.id.data)
-          ) {
-            idUint8Array = bufferLikeObjectToUint8Array(cred.id);
-          } else {
-            throw new Error('Credential id is neither a string nor Buffer-like object');
-          }
-
-          return {
+          .filter((cred) => cred.transports?.includes('internal'))
+          .map((cred) => ({
             ...cred,
-            id: idUint8Array,
-          };
-        }),
+            id: base64urlToUint8Array(cred.id),
+          })),
       };
-
+  
       const credential = await navigator.credentials.get({
-        publicKey: {
-          ...publicKeyCredentialRequestOptions,
-          userVerification: 'required',
-          // Ensure it uses Touch ID or other built-in biometrics
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform'
-          },
-        }
-      });      
-
-      const credentialData = {
-        id: credential.id,
-        rawId: uint8ArrayToBase64url(credential.rawId),
-        type: credential.type,
-        response: {
-          authenticatorData: uint8ArrayToBase64url(credential.response.authenticatorData),
-          clientDataJSON: uint8ArrayToBase64url(credential.response.clientDataJSON),
-          signature: uint8ArrayToBase64url(credential.response.signature),
-          userHandle: credential.response.userHandle
-            ? uint8ArrayToBase64url(credential.response.userHandle)
-            : null,
-        },
-        email: form.email,
-      };
-
-      const verifyResponse = await API.post('/webauthn/verify-authentication', credentialData);
-
+        publicKey: publicKeyCredentialRequestOptions,
+      });
+  
+      // ✅ Send raw credential object (no transformation)
+      const verifyResponse = await API.post('/webauthn/verify-authentication', credential);
+  
       if (verifyResponse.data.success) {
         const { user } = verifyResponse.data;
         login(verifyResponse.data.token, user.role, user);
@@ -177,7 +129,7 @@ export default function Login() {
     } finally {
       setLoadingFingerprint(false);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center dark:bg-gray-900 bg-white px-4">

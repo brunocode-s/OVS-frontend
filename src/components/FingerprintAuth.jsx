@@ -98,7 +98,9 @@ const FingerprintRegister = ({ onSuccess }) => {
     } finally {
       setRegistering(false);
     }
-  };    
+  };  
+  
+  
   return (
     <div>
       {checking ? (
