@@ -5,7 +5,7 @@ import { verifyBiometric } from '../services/biometricService';
 import io from 'socket.io-client';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const socket = io('https://ovs-backend-1.onrender.com');
+// const socket = io('https://ovs-backend-1.onrender.com');
 
 export default function Elections() {
   const [elections, setElections] = useState([]);
@@ -62,8 +62,15 @@ export default function Elections() {
   }, [elections]);
 
   const handleVote = async (candidateId, electionId) => {
-
     try {
+      const verified = await verifyBiometric(() => {
+        setFingerprintError('Fingerprint verification failed or cancelled.');
+      });
+  
+      if (!verified) return;
+  
+      setFingerprintError('');
+  
       await API.post(`/elections/${electionId}/vote`, { candidateId });
       toast.success('Vote cast!');
       fetchElectionStats(electionId);
@@ -71,6 +78,7 @@ export default function Elections() {
       toast.error(err.response?.data?.message || 'Voting failed');
     }
   };
+   
 
   const totalVotes = (electionId) => Object.values(results[electionId] || {}).reduce((acc, val) => acc + val, 0);
 

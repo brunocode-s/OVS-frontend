@@ -1,31 +1,39 @@
-import { toast } from 'react-toastify';
+// biometricService.js
+import { startAuthentication } from '@simplewebauthn/browser';
 import axiosInstance from '../../utils/axiosInstance';
+import { toast } from 'react-toastify';
 
-// Modify this to stop WebAuthn-related authentication
 export const verifyBiometric = async (onCancel = () => {}) => {
   try {
-    // Check if fingerprint is registered (this should still be part of your process)
-    const { data } = await axiosInstance.get('/webauthn/check-registration', {
+    // 1. Check if user has a registered fingerprint
+    const { data: check } = await axiosInstance.get('/webauthn/check-registration', {
       withCredentials: true,
     });
 
-    if (!data.isRegistered) {
+    if (!check.isRegistered) {
       toast.error('Fingerprint not registered.');
       onCancel();
       return false;
     }
 
-    // Here we skip the WebAuthn generation and verification (no longer needed)
-    // If you're using a custom fingerprint authentication flow, handle it here directly
+    // 2. Get options from server to start authentication
+    const { data: options } = await axiosInstance.get('/webauthn/generate-authentication-options', {
+      withCredentials: true,
+    });
 
-    // Custom logic for biometric authentication (using your fingerprint registration method)
-    const biometricAuthResult = await customBiometricAuthFunction();
+    // 3. Prompt user fingerprint scan
+    const authResp = await startAuthentication(options);
 
-    if (biometricAuthResult) {
-      toast.success('✅ Biometric authentication successful!');
+    // 4. Verify the response with server
+    const { data: verificationResult } = await axiosInstance.post('/webauthn/verify-authentication', authResp, {
+      withCredentials: true,
+    });
+
+    if (verificationResult.verified) {
+      toast.success('✅ Fingerprint verified!');
       return true;
     } else {
-      toast.error('❌ Biometric authentication failed!');
+      toast.error('❌ Fingerprint verification failed!');
       onCancel();
       return false;
     }
