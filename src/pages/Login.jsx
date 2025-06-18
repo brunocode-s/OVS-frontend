@@ -3,7 +3,7 @@ import API from '../services/api';
 import { toast } from 'react-toastify';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { MdFingerprint } from 'react-icons/md';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,13 +14,9 @@ export default function Login() {
   const [fingerprintError, setFingerprintError] = useState('');
   const [loadingFingerprint, setLoadingFingerprint] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const { login } = useAuth();
 
   function base64urlToUint8Array(base64url) {
-    if (typeof base64url !== 'string') {
-      throw new Error('Expected a base64url string but got ' + typeof base64url);
-    }
     const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
     const raw = atob(padded);
@@ -31,25 +27,12 @@ export default function Login() {
     return buffer;
   }
 
-  // function uint8ArrayToBase64url(buffer) {
-  //   let binary = '';
-  //   const bytes = new Uint8Array(buffer);
-  //   bytes.forEach((b) => (binary += String.fromCharCode(b)));
-  //   const base64 = btoa(binary);
-  //   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  // }
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
 
-    if (name === 'password' && passwordError) {
-      setPasswordError('');
-    }
-
-    if (name === 'email' && fingerprintError) {
-      setFingerprintError('');
-    }
+    if (name === 'password' && passwordError) setPasswordError('');
+    if (name === 'email' && fingerprintError) setFingerprintError('');
   };
 
   const handleSubmit = async (e) => {
@@ -67,16 +50,12 @@ export default function Login() {
       };
 
       login(res.data.token, form.role, formattedUser);
-      // toast.success('Logged in');
-      navigate(form.role === 'admin' ? '/admin' : '/userdashboard');
+      toast.success('Login successful');
+      // ❌ navigation removed — handled by route logic
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';
-      if (message.toLowerCase().includes('password')) {
-        setPasswordError('Incorrect password');
-      } else {
-        setPasswordError('Incorrect Password');
-        toast.error(message);
-      }
+      setPasswordError('Incorrect Password');
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -87,15 +66,15 @@ export default function Login() {
       setFingerprintError('Please enter your email first');
       return;
     }
-  
+
     setFingerprintError('');
     setLoadingFingerprint(true);
-  
+
     try {
       const response = await API.post('/webauthn/generate-authentication-options', {
         email: form.email,
       });
-  
+
       const publicKeyCredentialRequestOptions = {
         ...response.data,
         challenge: base64urlToUint8Array(response.data.challenge),
@@ -106,23 +85,18 @@ export default function Login() {
             id: base64urlToUint8Array(cred.id),
           })),
       };
-  
+
       const credential = await navigator.credentials.get({
         publicKey: publicKeyCredentialRequestOptions,
       });
-  
-      // ✅ Send raw credential object (no transformation)
+
       const verifyResponse = await API.post('/webauthn/verify-authentication', credential);
-  
+
       if (verifyResponse.data.success && verifyResponse.data.user) {
         const { user } = verifyResponse.data;
         login(verifyResponse.data.token, user.role, user);
         toast.success('Fingerprint login successful');
-
-        console.log('✅ Redirecting after fingerprint login', user.role);
-        setTimeout(() => {
-          navigate(user.role === 'admin' ? '/admin' : '/userdashboard');
-        }, 0);        
+        // ❌ navigation removed — route handles it
       } else {
         setFingerprintError('Fingerprint authentication failed');
       }
@@ -133,7 +107,7 @@ export default function Login() {
     } finally {
       setLoadingFingerprint(false);
     }
-  };  
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center dark:bg-gray-900 bg-white px-4">
@@ -210,7 +184,7 @@ export default function Login() {
                 : 'bg-gray-800 text-white hover:bg-white hover:text-black hover:border hover:border-black'
             )}
           >
-            {loading && (
+            {loading ? (
               <svg
                 className="animate-spin h-5 w-5 mr-2 text-white"
                 xmlns="http://www.w3.org/2000/svg"
@@ -224,15 +198,14 @@ export default function Login() {
                   r="10"
                   stroke="currentColor"
                   strokeWidth="4"
-                ></circle>
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                ></path>
+                />
               </svg>
-            )}
-            {loading ? 'Logging in...' : 'Login'}
+            ) : 'Login'}
           </button>
 
           <button
