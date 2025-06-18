@@ -120,7 +120,9 @@ export default function Login() {
         toast.success('Fingerprint login successful');
 
         console.log('✅ Redirecting after fingerprint login', user.role);
-        navigate(user.role === 'admin' ? '/admin' : '/userdashboard');
+        setTimeout(() => {
+          navigate(user.role === 'admin' ? '/admin' : '/userdashboard');
+        }, 0);        
       } else {
         setFingerprintError('Fingerprint authentication failed');
       }
