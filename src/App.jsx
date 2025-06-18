@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { useAuth } from './context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,56 +16,68 @@ import Navbar from './components/Navbar';
 
 function App() {
   const { isLoggedIn, userRole } = useAuth();
-  const location = useLocation(); // Use useLocation hook to get the current path
-
-  // Function to check if the user is logged in
-  const checkIsLoggedIn = () => !!localStorage.getItem('token');
+  const location = useLocation();
 
   return (
     <div>
-      {/* Display Navbar only on Home, Login, and Register pages */}
-      {location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register' ? <Navbar /> : null}
+      {/* Show navbar only on specific pages */}
+      {(location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') && (
+        <Navbar />
+      )}
 
       <ToastContainer />
       <Routes>
-        {/* Home route */}
         <Route path="/" element={<Home />} />
 
-        {/* Route for user dashboard */}
-        <Route 
-          path="/userdashboard" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <UserDashboard /> : <Login />}
+        {/* PROTECTED ROUTES */}
+        <Route
+          path="/userdashboard"
+          element={
+            isLoggedIn && userRole === 'user' ? (
+              <UserDashboard />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
-        
-        {/* Route for elections */}
-        <Route 
-          path="/elections" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <Elections /> : <Login />} 
+        <Route
+          path="/elections"
+          element={
+            isLoggedIn && userRole === 'user' ? (
+              <Elections />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
-        
-        {/* Admin routes */}
-        <Route 
-          path="/admin" 
-          element={checkIsLoggedIn() && userRole === 'admin' ? <AdminDashboard /> : <Login />}
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn && userRole === 'admin' ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/elections/:id"
+          element={
+            isLoggedIn && userRole === 'user' ? (
+              <ElectionDetails />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
 
-        {/* Routes for login and register */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={isLoggedIn ? <UserDashboard /> : <Register />} />
-
-        {/* Route for forgot password */}
+        {/* PUBLIC ROUTES */}
+        <Route path="/login" element={isLoggedIn ? <Navigate to={userRole === 'admin' ? '/admin' : '/userdashboard'} replace /> : <Login />} />
+        <Route path="/register" element={isLoggedIn ? <Navigate to="/userdashboard" replace /> : <Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        {/* Route for reset password */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Route for election details */}
-        <Route 
-          path="/elections/:id" 
-          element={checkIsLoggedIn() && userRole === 'user' ? <ElectionDetails /> : <Login />}
-        />
-
-        {/* 404 Route */}
+        {/* 404 fallback */}
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </div>
