@@ -19,7 +19,7 @@ export default function UserDashboard() {
   const checkFingerprintStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await API.get('/api/webauthn/check-registration', {
+      const res = await API.get('/webauthn/check-registration', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHasFingerprint(res.data.hasFingerprint);
