@@ -12,7 +12,7 @@ import Elections from './pages/Elections';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import ElectionDetails from './pages/ElectionDetails';
-import Navbar from './components/Navbar';
+// import BiometricSetup from './pages/Biometric
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], redirectTo = '/login' }) {
@@ -50,12 +50,25 @@ function PublicRoute({ children }) {
   }
 
   if (isLoggedIn) {
+    // Handle redirect after any type of login (password, fingerprint, etc.)
     const redirectPath = userRole === 'admin' ? '/admin' : '/userdashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
   return children;
 }
+
+// // Redirect helper for post-login navigation
+// function usePostLoginRedirect() {
+//   const { userRole } = useAuth();
+  
+//   const redirectToDashboard = () => {
+//     const path = userRole === 'admin' ? '/admin' : '/userdashboard';
+//     return <Navigate to={path} replace />;
+//   };
+
+//   return redirectToDashboard;
+// }
 
 function App() {
   const { loading } = useAuth();
