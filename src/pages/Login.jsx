@@ -93,10 +93,18 @@ export default function Login() {
       const verifyResponse = await API.post('/webauthn/verify-authentication', credential);
 
       if (verifyResponse.data.success && verifyResponse.data.user) {
-        const { user } = verifyResponse.data;
-        login(verifyResponse.data.token, user.role, user);
+        const user = verifyResponse.data.user;
+      
+        const formattedUser = {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          firstName: user.firstname, // ✅ backend gives `firstname`, we need `firstName`
+          lastName: user.lastname,
+        };
+      
+        login(verifyResponse.data.token, user.role, formattedUser);
         toast.success('Fingerprint login successful');
-        // ❌ navigation removed — route handles it
       } else {
         setFingerprintError('Fingerprint authentication failed');
       }

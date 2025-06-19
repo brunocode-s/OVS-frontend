@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
  * Requires:
  * - Logged-in user info with at least the `email` field
  */
-export const verifyBiometric = async (onCancel = () => {}, userEmail) => {
+export const verifyBiometric = async (onCancel = () => {}, userEmail, loginFn) => {
   try {
     if (!userEmail) {
       toast.error('User email is required for biometric verification.');
@@ -26,25 +26,34 @@ export const verifyBiometric = async (onCancel = () => {}, userEmail) => {
       return false;
     }
 
-    // 2. Request WebAuthn authentication options (✅ includes email in request body)
+    // 2. Get options
     const { data: options } = await axiosInstance.post(
       '/webauthn/generate-authentication-options',
       { email: userEmail },
       { withCredentials: true }
     );
 
-    // 3. Start fingerprint scan via WebAuthn browser prompt
+    // 3. Prompt fingerprint scan
     const authResp = await startAuthentication(options);
 
-    // 4. Send response back to backend for verification
+    // 4. Verify
     const { data: verificationResult } = await axiosInstance.post(
       '/webauthn/verify-authentication',
       authResp,
       { withCredentials: true }
     );
 
-    if (verificationResult.verified || verificationResult.success) {
+    if (verificationResult.success && verificationResult.token && verificationResult.user) {
       toast.success('✅ Fingerprint verified!');
+
+      if (typeof loginFn === 'function') {
+        loginFn(
+          verificationResult.token,
+          verificationResult.user.role,
+          verificationResult.user
+        );
+      }
+
       return true;
     } else {
       toast.error('❌ Fingerprint verification failed!');
@@ -58,3 +67,4 @@ export const verifyBiometric = async (onCancel = () => {}, userEmail) => {
     return false;
   }
 };
+
