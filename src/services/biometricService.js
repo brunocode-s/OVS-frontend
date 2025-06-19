@@ -17,7 +17,7 @@ export const verifyBiometric = async (onCancel = () => {}) => {
     }
 
     // 2. Get options from server to start authentication
-    const { data: options } = await axiosInstance.get('/webauthn/generate-authentication-options', {
+    const { data: options } = await axiosInstance.post('/webauthn/generate-authentication-options', {
       withCredentials: true,
     });
 
