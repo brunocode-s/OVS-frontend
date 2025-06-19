@@ -99,8 +99,8 @@ export default function Login() {
           id: user.id,
           email: user.email,
           role: user.role,
-          firstName: user.firstname, // ✅ backend gives `firstname`, we need `firstName`
-          lastName: user.lastname,
+          firstName: user.firstName, // ✅ backend gives `firstname`, we need `firstName`
+          lastName: user.lastName,
         };
       
         login(verifyResponse.data.token, user.role, formattedUser);
