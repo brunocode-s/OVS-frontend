@@ -16,18 +16,22 @@ export const verifyBiometric = async (onCancel = () => {}) => {
       return false;
     }
 
-    // 2. Get options from server to start authentication
-    const { data: options } = await axiosInstance.post('/webauthn/generate-authentication-options', {
-      withCredentials: true,
-    });
+    // 2. Get options from server to start authentication (✅ fixed)
+    const { data: options } = await axiosInstance.post(
+      '/webauthn/generate-authentication-options',
+      {}, // empty body
+      { withCredentials: true } // config
+    );
 
-    // 3. Prompt user fingerprint scan
+    // 3. Prompt user for fingerprint scan
     const authResp = await startAuthentication(options);
 
-    // 4. Verify the response with server
-    const { data: verificationResult } = await axiosInstance.post('/webauthn/verify-authentication', authResp, {
-      withCredentials: true,
-    });
+    // 4. Verify the response with the server
+    const { data: verificationResult } = await axiosInstance.post(
+      '/webauthn/verify-authentication',
+      authResp,
+      { withCredentials: true }
+    );
 
     if (verificationResult.verified) {
       toast.success('✅ Fingerprint verified!');

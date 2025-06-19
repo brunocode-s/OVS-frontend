@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { startRegistration } from '@simplewebauthn/browser';
 import { toast } from 'react-toastify';
-import { bufferToBase64URLString } from '@simplewebauthn/browser';
+// import { bufferToBase64URLString } from '@simplewebauthn/browser';
 import API from '../services/api';
 
 const FingerprintRegister = ({ onSuccess }) => {
