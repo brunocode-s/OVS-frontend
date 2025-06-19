@@ -6,6 +6,7 @@ import { castVote, getElectionById } from '../api/election';
 import { verifyBiometric } from '../services/biometricService';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 // Modal for confirmation
 const VoteConfirmationModal = ({ candidate, onConfirm, onCancel }) => {
@@ -37,6 +38,7 @@ const VoteConfirmationModal = ({ candidate, onConfirm, onCancel }) => {
 
 export default function ElectionDetails() {
   const { id } = useParams();
+  const { user } = useAuth(); // ✅ access user email
   const [election, setElection] = useState(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
@@ -102,29 +104,28 @@ export default function ElectionDetails() {
       setShowModal(false);
       return;
     }
-  
+
     const candidate = election.candidates.find((c) => c.id === selectedCandidateId);
     if (!candidate) {
       toast.error('Candidate not found.');
       setShowModal(false);
       return;
     }
-  
-    // 🧬 Trigger fingerprint auth here
-    const verified = await verifyBiometric(() => {
-      toast.error('Fingerprint verification cancelled or failed.');
-    });
-  
+
+    // ✅ Biometric verification using user.email
+    const verified = await verifyBiometric(
+      () => toast.error('Fingerprint verification cancelled or failed.'),
+      user?.email
+    );
+
     if (!verified) {
       setShowModal(false);
       return;
     }
-  
-    // ✅ Only allow vote after fingerprint is verified
+
     await handleVote(candidate.id);
     setShowModal(false);
   };
-  
 
   const cancelVote = () => setShowModal(false);
 

@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import { verifyBiometric } from '../services/biometricService';
-import io from 'socket.io-client';
+import { useAuth } from '../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-// const socket = io('https://ovs-backend-1.onrender.com');
-
 export default function Elections() {
+  const { user } = useAuth();
   const [elections, setElections] = useState([]);
   const [hasVoted, setHasVoted] = useState({});
   const [results, setResults] = useState({});
@@ -63,14 +62,14 @@ export default function Elections() {
 
   const handleVote = async (candidateId, electionId) => {
     try {
-      const verified = await verifyBiometric(() => {
-        setFingerprintError('Fingerprint verification failed or cancelled.');
-      });
-  
+      const verified = await verifyBiometric(
+        () => setFingerprintError('Fingerprint verification failed or cancelled.'),
+        user?.email // ✅ pass user's email for verification
+      );
+
       if (!verified) return;
-  
+
       setFingerprintError('');
-  
       await API.post(`/elections/${electionId}/vote`, { candidateId });
       toast.success('Vote cast!');
       fetchElectionStats(electionId);
@@ -78,23 +77,21 @@ export default function Elections() {
       toast.error(err.response?.data?.message || 'Voting failed');
     }
   };
-   
 
-  const totalVotes = (electionId) => Object.values(results[electionId] || {}).reduce((acc, val) => acc + val, 0);
+  const totalVotes = (electionId) =>
+    Object.values(results[electionId] || {}).reduce((acc, val) => acc + val, 0);
 
   const now = new Date();
 
   const filteredElections = elections.filter((e) =>
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   const ongoingElections = filteredElections.filter(
     (e) => new Date(e.start_date) <= now && new Date(e.end_date) > now
   );
-  
-  const endedElections = filteredElections.filter(
-    (e) => new Date(e.end_date) <= now
-  );
+
+  const endedElections = filteredElections.filter((e) => new Date(e.end_date) <= now);
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-900 shadow rounded-lg mt-8">
@@ -107,22 +104,32 @@ export default function Elections() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">Live Elections</h2>
+
+      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">
+        Live Elections
+      </h2>
 
       {/* Ongoing Elections */}
-      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Ongoing Elections</h3>
+      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+        Ongoing Elections
+      </h3>
       <ul className="space-y-2 mb-6">
         {ongoingElections.map((election) => (
           <li key={election.id} className="border-b py-4">
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-blue-400 text-lg font-semibold">{election.title}</span>
+              <span className="text-gray-700 dark:text-blue-400 text-lg font-semibold">
+                {election.title}
+              </span>
               <span className="text-sm text-green-500">Ongoing</span>
             </div>
 
             <h4 className="mt-2 text-gray-700 dark:text-gray-200">Candidates</h4>
             <ul className="space-y-2">
               {candidates[election.id]?.map((candidate) => (
-                <li key={candidate.id} className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded">
+                <li
+                  key={candidate.id}
+                  className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded"
+                >
                   <span className="text-gray-800 dark:text-gray-100">{candidate.name}</span>
                   <button
                     onClick={() => handleVote(candidate.id, election.id)}
@@ -167,19 +174,26 @@ export default function Elections() {
       </ul>
 
       {/* Ended Elections */}
-      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mt-8">Ended Elections</h3>
+      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mt-8">
+        Ended Elections
+      </h3>
       <ul className="space-y-2 mb-6">
         {endedElections.map((election) => (
           <li key={election.id} className="border-b py-4">
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-blue-400 text-lg font-semibold">{election.title}</span>
+              <span className="text-gray-700 dark:text-blue-400 text-lg font-semibold">
+                {election.title}
+              </span>
               <span className="text-sm text-red-500">Ended</span>
             </div>
 
             <h4 className="mt-2 text-gray-700 dark:text-gray-200">Candidates</h4>
             <ul className="space-y-2">
               {candidates[election.id]?.map((candidate) => (
-                <li key={candidate.id} className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded">
+                <li
+                  key={candidate.id}
+                  className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded"
+                >
                   <span className="text-gray-800 dark:text-gray-100">{candidate.name}</span>
                 </li>
               ))}
